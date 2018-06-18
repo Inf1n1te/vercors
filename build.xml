@@ -1,0 +1,182 @@
+<!-- -*- tab-width:2 ; indent-tabs-mode:nil -*- -->
+
+<project name="VerCors Tool" default="compile">
+
+  <!-- the dependencies are either in the deps sub-directory or two levels up -->  
+  <condition property="deps" value="${basedir}/deps" else="${basedir}/../..">
+    <available file="${basedir}/deps" type="dir"/>
+  </condition>
+  
+  <condition property="sbtcommand" value="${basedir}/windows/bin/vct-sbt.cmd"
+                                    else="${basedir}/unix/bin/vct-sbt">
+    <os family="windows" />
+  </condition>  
+
+  <condition property="sbtbuild" value="assembly"
+                                    else="packCopyDependencies">
+    <os family="windows" />
+  </condition>  
+
+	<property name="dist"         value="${basedir}/dist"/>
+  <property environment="env"/>
+
+  <target name="clean">
+    <ant antfile="build.xml" dir="${basedir}/viper/viper-api" inheritAll="false" target="clean"/>
+    <exec dir="${basedir}/vercors" executable="${sbtcommand}"> <arg value="clean" /> </exec>
+    <exec dir="${basedir}/viper/silver" executable="${sbtcommand}"> <arg value="clean" /> </exec>
+    <exec dir="${basedir}/viper/silicon" executable="${sbtcommand}"> <arg value="clean" /> </exec>
+    <exec dir="${basedir}/viper/carbon" executable="${sbtcommand}"> <arg value="clean" /> </exec>
+    <ant antfile="build.xml" dir="${basedir}/parsers" inheritAll="false" target="clean"/>
+    <ant antfile="build.xml" dir="${basedir}/hre" inheritAll="false" target="clean"/>
+    <delete dir="${basedir}/doc/api"/>
+  </target>
+  
+  <target name="assembly" depends="compile">
+  	<jar destfile="vct-tool.jar" >
+      <manifest>
+        <attribute name="Main-Class" value="vct.main.Main"/>
+        <attribute name="Built-By" value="${user.name}"/>
+      </manifest>
+		  <fileset dir="hre/bin">
+		  	<include name="**" />
+		  </fileset>
+		  <fileset dir="parsers/bin">
+		  	<include name="**" />
+		  </fileset>
+		  <fileset dir="vercors/target/scala-2.11/classes">
+		  	<include name="**" />
+		  </fileset>
+		  <fileset dir="viper/viper-api/bin">
+		  	<include name="**" />
+		  </fileset>
+		  <zipfileset src="vercors/target/lib/antlr4-runtime-4.5.3.jar" excludes="META-INF/*" />
+		  <zipfileset src="vercors/target/lib/commons-lang3-3.1.jar" excludes="META-INF/*" />
+		  <zipfileset src="vercors/target/lib/commons-io-2.4.jar" excludes="META-INF/*" />
+		  <zipfileset src="vercors/target/lib/gson-2.8.0.jar" excludes="META-INF/*" />
+		  <zipfileset src="vercors/target/lib/scala-library-2.11.7.jar" excludes="META-INF/*" />
+		</jar>
+  </target>
+  
+  <target name="compile">
+    <ant antfile="build.xml" dir="${basedir}/viper/viper-api" inheritAll="false" target="compile"/>
+    <ant antfile="build.xml" dir="${basedir}/hre" inheritAll="false" target="compile"/>
+    <ant antfile="build.xml" dir="${basedir}/parsers" inheritAll="false" target="compile"/>
+    <exec dir="${basedir}/vercors" executable="${sbtcommand}"> <arg value="${sbtbuild}" /> </exec>
+    <exec dir="${basedir}/viper/silver" executable="${sbtcommand}"> <arg value="compile" /> </exec>
+    <exec dir="${basedir}/viper/silicon" executable="${sbtcommand}"> <arg value="assembly" /> </exec>
+    <exec dir="${basedir}/viper/carbon" executable="${sbtcommand}"> <arg value="assembly" /> </exec>
+  </target>
+
+  <target name="doc" depends="compile">
+    <!-- do not inline! -->
+		<antcall target="javadoc"/>
+  </target>
+
+  <target name="javadoc">
+    <mkdir dir="${basedir}/doc/api"/>
+    <javadoc
+           overview="${basedir}/src/overview.html"
+           classpath="${basedir}/main/vct-tool.jar:${basedir}/core/libs/antlr-4.5.3-complete.jar:${basedir}/libs/commons-lang3-3.1/commons-lang3-3.1.jar"
+           destdir="${basedir}/doc/api"
+           author="true"
+           version="true"
+           use="true"
+           windowtitle="VerCors Tool API">
+
+      <fileset dir="${basedir}/hre/src" defaultexcludes="yes">
+        <include name="**/*.java"/>
+      </fileset>
+      <fileset dir="${basedir}/vercors/src/main/java" defaultexcludes="yes">
+        <include name="**/*.java"/>
+      </fileset>
+      <fileset dir="${basedir}/viper/viper-api/src" defaultexcludes="yes">
+        <include name="**/*.java"/>
+      </fileset>
+
+      <doctitle><![CDATA[<h1>VerCors Tool Documentation</h1>]]></doctitle>
+      <bottom><![CDATA[<i>Copyright &#169; 2011-2012 Stefan Blom. All Rights Reserved.</i>]]></bottom>
+      <group title="Parsers and Imports" packages="vct.antlr4*"/>
+      <group title="Provers and Exports" packages="vct.boogie:vct.java.printer"/>
+      <group title="Hybrid Runtime Environment" packages="hre*"/>
+      <!--
+      <tag name="todo" scope="all" description="To do:"/> 
+      <group title="Group 1 Packages" packages="com.dummy.test.a*"/>
+      <group title="Group 2 Packages" packages="com.dummy.test.b*:com.dummy.test.c*"/>
+      <link offline="true" href="http://download.oracle.com/javase/6/docs/api/" packagelistLoc="C:\tmp"/>
+      <link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/>
+      -->
+    </javadoc>
+  </target>  
+
+<!-- 
+  <target name="tutorial">
+    <exec dir="${basedir}/tex" executable="pdflatex">
+      <env key="TEXINPUTS" value=".:${basedir}/examples//::"/>
+      <arg value="tutorial.tex"/>
+    </exec>
+    <exec dir="${basedir}/tex" executable="pdflatex">
+      <env key="TEXINPUTS" value=".:${basedir}/examples//::"/>
+      <arg value="tutorial.tex"/>
+    </exec>
+  </target>
+-->
+  
+  <target name="dist" depends="assembly,doc">
+	  <exec executable="git"
+	        failonerror="true"
+	        outputproperty="gitversion"
+	        dir="${basedir}">
+      <arg value="describe"/>
+      <arg value="--tags"/>
+    </exec>
+    <property name="prefix" value="vercors-${gitversion}"/>
+
+    <mkdir dir="${dist}"/>
+    <zip destfile="${dist}/vercors-${gitversion}.zip" >
+      <zipfileset dir="${deps}/modules/z3" prefix="${prefix}/deps/modules/z3" excludes="**/*~" />
+      <zipfileset dir="${deps}/z3" prefix="${prefix}/deps/z3" excludes="**/*~,**/*.cmd,**/*.exe,**/bin/*" />
+      <zipfileset dir="${deps}/z3" prefix="${prefix}/deps/z3" filemode="755" excludes="**/*~" includes="**/*.cmd,**/*.exe,**/bin/*" />
+
+      <zipfileset dir="${deps}/modules/boogie" prefix="${prefix}/deps/modules/boogie" excludes="**/*~" />
+      <zipfileset dir="${deps}/boogie" prefix="${prefix}/deps/boogie" excludes="**/*~,**/*.cmd,**/*.exe,**/bin/*" />
+      <zipfileset dir="${deps}/boogie" prefix="${prefix}/deps/boogie" filemode="755" excludes="**/*~" includes="**/*.cmd,**/*.exe,**/bin/*" />
+      
+      <zipfileset dir="${deps}/modules/chalice" prefix="${prefix}/deps/modules/chalice" excludes="**/*~" />
+      <zipfileset dir="${deps}/chalice" prefix="${prefix}/deps/chalice" excludes="**/*~,**/*.cmd,**/*.exe,**/bin/*" />
+      <zipfileset dir="${deps}/chalice" prefix="${prefix}/deps/chalice" filemode="755" excludes="**/*~" includes="**/*.cmd,**/*.exe,**/bin/*" />
+      
+      <zipfileset dir="." prefix="${prefix}"
+        includes="README,INSTALL"
+      />
+      <zipfileset dir="unix" prefix="${prefix}/unix"
+        excludes="*~" filemode="755"
+      />
+      <zipfileset dir="windows" prefix="${prefix}/windows"
+        excludes="*~" filemode="755"
+      />
+      <zipfileset dir="config" prefix="${prefix}/config"
+        excludes="*~" filemode="755"
+      />
+      <zipfileset dir="libs" prefix="${prefix}/libs"/>
+      <zipfileset dir="core/libs" prefix="${prefix}/core/libs"/>
+      <zipfileset dir="doc" prefix="${prefix}/doc"/>
+      <zipfileset dir="modules" prefix="${prefix}/modules" filemode="755"
+        excludes="**/*~,.git,init/*sh,init/perl,init/python,init/lisp,init/modulerc"
+      />
+      <zipfileset dir="examples" prefix="${prefix}/examples"
+        includes="**/*.java,**/*.pvl,**/*.c,README,**/SEEALSO,backends/**/*"
+        excludes="**/*~"
+      />
+      <zipfileset dir="." prefix="${prefix}"
+        includes="hre/hre.jar,core/vct-core.jar,main/vct-tool.jar,
+                  viper/silicon/target/scala-2.11/silicon.jar,
+                  viper/carbon/target/scala-2.11/carbon.jar"
+      />
+    </zip>
+    <symlink action="delete" link="${dist}/vercors-latest.zip"/>
+    <symlink link="${dist}/vercors-latest.zip" resource="${dist}/vercors-${gitversion}.zip"/> 
+  </target>
+
+</project>
+
+

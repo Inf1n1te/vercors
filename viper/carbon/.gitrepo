@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@bitbucket.org:vercors/carbon-git.git
+	branch = vercors
+	commit = 2e68455f8b2481ea54ec6486e648eff9e834f30a
+	parent = fe6a823c77e7406d3e195a867433e0e0d193725e
+	cmdver = 0.3.0

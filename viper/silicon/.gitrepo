@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@bitbucket.org:vercors/silicon-git.git
+	branch = vercors
+	commit = 35c5b7be4ac254be0848ab50a15831afa950ae6c
+	parent = bf105b3c9536b62f9d0fa5f4da00a0bf49356261
+	cmdver = 0.3.0

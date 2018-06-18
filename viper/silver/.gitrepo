@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@bitbucket.org:vercors/silver-git.git
+	branch = vercors
+	commit = 98fb804c61831651c22c00f2b88c2ea47a4d1a40
+	parent = 85934d109d73b6de93c1f6c9e4173958f27f0653
+	cmdver = 0.3.0

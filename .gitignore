@@ -1,0 +1,10 @@
+.metadata/
+.project
+dist/
+doc/
+tmp
+tmp.*
+vct-tool.jar
+
+*~
+
