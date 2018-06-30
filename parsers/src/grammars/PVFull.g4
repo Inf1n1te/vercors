@@ -62,6 +62,9 @@ atomExpression
  | identifier
  | NUMBER
  | '|' expr '|'
+ | atomExpression '[..' atomExpression ']'
+ | atomExpression '[' atomExpression '..]'
+ | atomExpression '[' atomExpression '..' atomExpression ']'
  | values
  | 'unfolding' expr 'in' expr
  | valPrimary

@@ -323,6 +323,15 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
         create.invokation(object,null, method, args)
       );
     }
+    if(match(ctx,null,"[..",null,"]")){
+      return create.expression(StandardOperator.Take,convert(ctx,0),convert(ctx,2));
+    }
+    if(match(ctx,null,"[",null,"..]")){
+      return create.expression(StandardOperator.Drop,convert(ctx,0),convert(ctx,2));
+    }
+    if(match(ctx,null,"[",null,"..",null,"]")){
+      return create.expression(StandardOperator.Drop,create.expression(StandardOperator.Take,convert(ctx,0),convert(ctx,4)),convert(ctx,2));
+    }
     return visit(ctx);
   }
 
